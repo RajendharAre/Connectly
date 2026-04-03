@@ -2,7 +2,12 @@
 
 A full-stack social media application inspired by TaskPlanet's social feed. Built with React, Node.js, Express, MongoDB, and Material-UI.
 
-## 📋 Project Overview
+## � Live Deployment
+
+- **Frontend**: https://connectly-social-eight.vercel.app
+- **Backend**: https://connectly-p2b9.onrender.com
+
+## �📋 Project Overview
 
 This is a mini social post application where users can:
 - Create accounts with email and password
