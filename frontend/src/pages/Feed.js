@@ -6,7 +6,8 @@ import {
   Button,
   AppBar,
   Toolbar,
-  CircularProgress
+  CircularProgress,
+  Pagination
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
@@ -21,47 +22,41 @@ const Feed = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchPosts = useCallback(async () => {
+  const fetchPosts = useCallback(async (pageNum) => {
     try {
+      console.log('📄 Fetching posts for page:', pageNum);
       setLoading(true);
-      const response = await postsAPI.getAllPosts(page);
+      const response = await postsAPI.getAllPosts(pageNum);
       setPosts(response.data.posts);
-      setHasMore(page < response.data.pagination.pages);
+      setTotalPages(response.data.pagination.pages);
+      setPage(pageNum);
+      console.log('✅ Posts loaded for page', pageNum, '- Total pages:', response.data.pagination.pages);
+      window.scrollTo(0, 0); // Scroll to top when page changes
     } catch (err) {
-      console.error('Error fetching posts:', err);
+      console.error('❌ Error fetching posts:', err);
     } finally {
       setLoading(false);
     }
-  }, [page]);
-
-  const loadMorePosts = useCallback(async () => {
-    try {
-      const response = await postsAPI.getAllPosts(page);
-      setPosts([...posts, ...response.data.posts]);
-      setHasMore(page < response.data.pagination.pages);
-    } catch (err) {
-      console.error('Error loading more posts:', err);
-    }
-  }, [page, posts]);
+  }, []);
 
   useEffect(() => {
     if (!user) {
       navigate('/signin');
     } else {
-      setPage(1);
-      fetchPosts();
+      fetchPosts(1);
     }
   }, [user, navigate, fetchPosts]);
 
   const handlePostCreated = async () => {
-    setPage(1);
-    fetchPosts();
+    console.log('📝 New post created - refreshing to page 1');
+    fetchPosts(1);
   };
 
   const handlePostDeleted = async () => {
-    fetchPosts();
+    console.log('🗑️ Post deleted - refreshing current page');
+    fetchPosts(page);
   };
 
   const handleLogout = () => {
@@ -69,15 +64,10 @@ const Feed = () => {
     navigate('/signin');
   };
 
-  const handleLoadMore = () => {
-    setPage(page + 1);
+  const handlePageChange = (event, value) => {
+    console.log('📖 Changing to page:', value);
+    fetchPosts(value);
   };
-
-  useEffect(() => {
-    if (page > 1) {
-      loadMorePosts();
-    }
-  }, [page, loadMorePosts]);
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
@@ -125,13 +115,20 @@ const Feed = () => {
                 <PostCard key={post._id} post={post} onPostDeleted={handlePostDeleted} />
               ))}
 
-              {hasMore && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-                  <Button variant="outlined" onClick={handleLoadMore}>
-                    Load More
-                  </Button>
-                </Box>
-              )}
+              {/* Professional Numbered Pagination */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={handlePageChange}
+                  color="primary"
+                  size="large"
+                  siblingCount={1}
+                  boundaryCount={1}
+                  showFirstButton
+                  showLastButton
+                />
+              </Box>
             </>
           )}
         </Box>
