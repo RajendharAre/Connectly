@@ -141,8 +141,99 @@ SocialTL/
 - ✅ JWT token persistence in localStorage
 - ✅ Protected routes with authentication checks
 - ✅ Automatic token injection in API requests
-- ✅ Real-time post feed with pagination
+- ✅ Real-time post feed with **numbered pagination**
 - ✅ Zero ESLint warnings
+- ✅ **Cloudinary + Base64 Fallback** - Never lose images!
+- ✅ **Smart Error Handling** - Auto-recovers from Cloudinary failures
+- ✅ **Console Logging** - Debug-friendly with detailed logs
+
+## 🖼️ Image Upload with Smart Fallback
+
+### How It Works:
+
+**Primary Method: Cloudinary** ☁️
+```
+User selects image → FormData created → Sent to Cloudinary → 
+Secure CDN URL returned → Post saved with URL → ⚡ Fast loading
+```
+
+**Fallback Method: Base64** 📥  
+```
+If Cloudinary fails → Auto-fallback to Base64 → Image stored in MongoDB → 
+Post saved → Website still works! ✅
+```
+
+### Quick View - Console Logs:
+
+Open **Developer Tools (F12)** → **Console** tab to see:
+
+**Success with Cloudinary:**
+```
+📸 Image selected: photo.jpg Size: 7270 Type: image/jpeg
+✅ Image preview created + Base64 backup ready
+☁️ Attempting Cloudinary upload...
+✅ Post created with Cloudinary
+```
+
+**Auto-Fallback to Base64:**
+```
+☁️ Attempting Cloudinary upload...
+⚠️ Cloudinary failed: Network error
+📥 Falling back to Base64 storage...
+✅ Post created with Base64 (Cloudinary was unavailable)
+```
+
+### Result:
+
+✅ **Zero Downtime** - Your website never goes down
+✅ **Smart Retry** - Uses best option (Cloudinary) or falls back
+✅ **User Unaware** - Post saves either way, user doesn't notice
+✅ **Production-Ready** - Handles all failure scenarios gracefully
+
+---
+
+---
+
+## 📖 Professional Numbered Pagination
+
+The feed uses **numbered pagination** instead of "Load More" for a professional, standard UI experience.
+
+### How It Works:
+
+```
+Display: « 1  2  3  4  5  »
+         ^              ^
+       First/Previous  Next/Last
+```
+
+- **10 posts per page** - Configurable in `backend/controllers/postController.js`
+- **Auto-scroll to top** - When changing pages
+- **Direct page jump** - Click any number to jump
+- **Current page highlighted** - Shows which page you're viewing
+
+### Example:
+
+```
+Total posts: 50
+Posts per page: 10
+Total pages: 5
+
+Page 1: Posts 1-10
+Page 2: Posts 11-20
+Page 3: Posts 21-30
+Page 4: Posts 31-40
+Page 5: Posts 41-50
+```
+
+### Console Logs:
+
+```
+📖 Changing to page: 2
+📄 Fetching posts for page: 2
+✅ Posts loaded for page 2 - Total pages: 5
+```
+
+---
 
 ## 📚 API Endpoints
 
@@ -153,12 +244,45 @@ SocialTL/
 
 ### Posts
 - `GET /api/posts` - Get all posts (with pagination)
-- `POST /api/posts` - Create new post (protected)
+- `POST /api/posts` - Create new post with image upload (protected)
+  - Supports file upload → Cloudinary (auto CDN URL)
+  - Fallback to Base64 if Cloudinary unavailable
+  - Can include: text content + file, text only, or file only
 - `GET /api/posts/:id` - Get single post
 - `DELETE /api/posts/:id` - Delete post (protected)
 - `PUT /api/posts/:id/like` - Like/Unlike post (protected)
 - `POST /api/posts/:id/comment` - Add comment (protected)
 - `DELETE /api/posts/:postId/comment/:commentId` - Delete comment (protected)
+
+### Example: Create Post with Image
+
+**Option 1: Using Postman (FormData)**
+```
+POST /api/posts
+Headers: Authorization: Bearer <token>
+Body (form-data):
+  - content: "Hello World"
+  - image: <select_file>
+
+Response: 
+{
+  "success": true,
+  "message": "Post created with Cloudinary image",
+  "post": {
+    "image": "https://res.cloudinary.com/..."
+  }
+}
+```
+
+**Option 2: Using Browser (Automatic Fallback)**
+- Select image in UI
+- Type content
+- Click Post
+- Frontend attempts Cloudinary
+- If failed → Auto-fallback to Base64
+- Post saves! ✅
+
+---
 
 ## 🌐 Deployment
 
